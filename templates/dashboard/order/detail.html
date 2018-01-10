@@ -157,7 +157,7 @@
                 </td>
                 <td class="right-align">
                   <strong>
-                    {% gross balance html=True %}
+                    {{ balance.gross|amount:'html' }}
                   </strong>
                 </td>
               </tr>
@@ -168,8 +168,8 @@
                   {% trans "Preauthorized amount" context "Order summary card header" %}
                 </td>
                 <td class="right-align">
-                  {% if preauthorized %}
-                    {% gross preauthorized html=True %}
+                  {% if preauthorized.gross %}
+                    {{ preauthorized.gross|amount:'html' }}
                   {% else %}
                     {% trans "N/A" context "Preauthorized amount not available" %}
                   {% endif %}
@@ -180,7 +180,7 @@
                   {% trans "Captured amount" context "Order summary card header" %}
                 </td>
                 <td class="right-align">
-                  {% gross captured html=True %}
+                  {{ captured.gross|amount:'html' }}
                 </td>
               </tr>
             </tbody>
@@ -298,7 +298,7 @@
                       </span>
                     </td>
                     <td class="right-align">
-                      {% gross line.get_price_per_item html=True %}
+                      {{ line.get_price_per_item.gross|amount:'html' }}
                     </td>
                     <td class="right-align">
                       {% if group.can_edit_lines %}
@@ -335,7 +335,7 @@
                       {% endif %}
                     </td>
                     <td class="right-align">
-                      {% gross line.get_total html=True %}
+                      {{ line.get_total.gross|amount:'html' }}
                     </td>
                   </tr>
                 {% endfor %}
@@ -384,7 +384,7 @@
                   {% trans "Grand total" context "Order totals header" %}
                 </td>
                 <td>
-                  {% gross order.total html=True %}
+                  {{ order.total.gross|amount:'html' }}
                 </td>
               </tr>
             </tfoot>
@@ -394,7 +394,7 @@
                   {% trans "Subtotal" context "Order subtotal" %}
                 </td>
                 <td class="right-align">
-                  {% gross order.get_subtotal_without_voucher html=True %}
+                  {{ order.get_subtotal_without_voucher.gross|amount:'html' }}
                 </td>
               </tr>
               <tr>
@@ -402,7 +402,7 @@
                   {% trans "Shipping" context "Order totals header" %}
                 </td>
                 <td class="right-align">
-                  {% gross order.shipping_price html=True %}
+                  {{ order.shipping_price|amount:'html' }}
                 </td>
               </tr>
               {% if order.discount_amount.gross %}
@@ -424,7 +424,7 @@
                     </ul>
                   </td>
                   <td class="right-align">
-                    {% gross order.discount|discount_amount_for:order.total html=True %}
+                    {{ order.discount|discount_amount_for:order.total|amount:'html' }}
                   </td>
                 </tr>
             {% endif %}

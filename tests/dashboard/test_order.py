@@ -4,7 +4,8 @@ from unittest.mock import patch
 import pytest
 from django.urls import reverse
 from django_fsm import TransitionNotAllowed
-from prices import Price
+from prices import Money, TaxedMoney
+
 from tests.utils import get_redirect_location, get_url_path
 
 from saleor.cart.models import Cart
@@ -631,7 +632,8 @@ def test_process_new_delivery_group_with_discount(
     group.save()
 
     line = group.lines.first()
-    assert line.get_price_per_item() == Price(currency="USD", net=5)
+    assert line.get_price_per_item() == TaxedMoney(
+        Money('5', 'USD'), Money('5', 'USD'))
 
 
 def test_cant_process_cancelled_delivery_group(

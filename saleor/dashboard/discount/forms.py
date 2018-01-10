@@ -4,7 +4,7 @@ from django import forms
 from django.conf import settings
 from django.urls import reverse_lazy
 from django.utils.translation import pgettext_lazy
-from django_prices.forms import PriceField
+from django_prices.forms import MoneyField
 
 from ...discount import DiscountValueType, VoucherApplyToProduct
 from ...discount.models import Sale, Voucher
@@ -106,7 +106,7 @@ def country_choices():
 
 class ShippingVoucherForm(forms.ModelForm):
 
-    limit = PriceField(
+    limit = MoneyField(
         min_value=0, required=False, currency=settings.DEFAULT_CURRENCY)
     apply_to = forms.ChoiceField(
         choices=country_choices,
@@ -131,7 +131,7 @@ class ShippingVoucherForm(forms.ModelForm):
 
 class ValueVoucherForm(forms.ModelForm):
 
-    limit = PriceField(
+    limit = MoneyField(
         min_value=0, required=False, currency=settings.DEFAULT_CURRENCY)
 
     class Meta:

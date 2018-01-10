@@ -7,7 +7,7 @@ from django.template.response import TemplateResponse
 from django.urls import reverse
 
 from ..cart.utils import set_cart_cookie
-from ..core.utils import serialize_decimal
+from ..core.utils import serialize_amount
 from .filters import ProductCategoryFilter, ProductCollectionFilter
 from .models import Category, Collection
 from .utils import (
@@ -74,9 +74,9 @@ def product_details(request, slug, product_id, form=None):
          'product_images': product_images,
          'show_variant_picker': show_variant_picker,
          'variant_picker_data': json.dumps(
-             variant_picker_data, default=serialize_decimal),
+             variant_picker_data, default=serialize_amount),
          'json_ld_product_data': json.dumps(
-             json_ld_data, default=serialize_decimal)})
+             json_ld_data, default=serialize_amount)})
 
 
 def product_add_to_cart(request, slug, product_id):

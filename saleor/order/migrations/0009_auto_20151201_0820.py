@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
-import django_prices.models
 
 
 class Migration(migrations.Migration):
@@ -20,7 +19,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='order',
             name='total_tax',
-            field=django_prices.models.PriceField(decimal_places=2, currency=b'USD', max_digits=12, blank=True, null=True, verbose_name='total'),
+            field=models.DecimalField(decimal_places=2, max_digits=12, blank=True, null=True, verbose_name='total'),
         ),
         migrations.AlterField(
             model_name='deliverygroup',

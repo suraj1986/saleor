@@ -13,7 +13,7 @@ from django_countries import countries
 from django_countries.fields import Country
 from django_prices_openexchangerates import exchange_currency
 from geolite2 import geolite2
-from prices import PriceRange
+from prices import Money, MoneyRange
 
 from ...account.models import User
 
@@ -90,7 +90,7 @@ def get_paginator_items(items, paginate_by, page_number):
 def to_local_currency(price, currency):
     if not settings.OPENEXCHANGERATES_API_KEY:
         return None
-    if isinstance(price, PriceRange):
+    if isinstance(price, MoneyRange):
         from_currency = price.min_price.currency
     else:
         from_currency = price.currency
@@ -110,10 +110,10 @@ def get_user_shipping_country(request):
     return request.country
 
 
-def serialize_decimal(obj):
-    if isinstance(obj, decimal.Decimal):
-        return str(obj)
-    return JSONEncoder().default(obj)
+def serialize_amount(obj):
+    if isinstance(obj, Money):
+        return str(obj.value)
+    return JSONEncoder.default(obj)
 
 
 def create_superuser(credentials):

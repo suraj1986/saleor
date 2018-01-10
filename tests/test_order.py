@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from django.urls import reverse
-from prices import Price
+from prices import Money, TaxedMoney
 from tests.utils import get_redirect_location
 
 from saleor.order import OrderStatus, models
@@ -10,10 +10,11 @@ from saleor.order.utils import add_variant_to_delivery_group
 
 
 def test_total_property():
-    order = models.Order(total_net=20, total_tax=5)
-    assert order.total.gross == 25
-    assert order.total.tax == 5
-    assert order.total.net == 20
+    order = models.Order(total_net=Money(20, currency='USD'),
+                         total_tax=Money(5, currency='USD'))
+    assert order.total.gross == Money(25, currency='USD')
+    assert order.total.tax == Money(5, currency='USD')
+    assert order.total.net == Money(20, currency='USD')
 
 
 def test_total_property_empty_value():
@@ -22,11 +23,12 @@ def test_total_property_empty_value():
 
 
 def test_total_setter():
-    price = Price(net=10, gross=20, currency='USD')
+    price = TaxedMoney(Money(10, currency='USD'),
+                       Money(20, currency='USD'))
     order = models.Order()
     order.total = price
-    assert order.total_net.net == 10
-    assert order.total_tax.net == 10
+    assert order.total_net == Money(10, currency='USD')
+    assert order.total_tax == Money(10, currency='USD')
 
 
 def test_add_variant_to_delivery_group_adds_line_for_new_variant(

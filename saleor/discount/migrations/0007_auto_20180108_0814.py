@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 import datetime
 from django.db import migrations, models
 import django.db.models.deletion
-import django_prices.models
 
 
 class Migration(migrations.Migration):
@@ -73,7 +72,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='voucher',
             name='limit',
-            field=django_prices.models.PriceField(blank=True, currency='USD', decimal_places=2, max_digits=12, null=True),
+            field=models.DecimalField(blank=True, decimal_places=2, max_digits=12, null=True),
         ),
         migrations.AlterField(
             model_name='voucher',

@@ -3,7 +3,6 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
-import django_prices.models
 
 
 class Migration(migrations.Migration):
@@ -24,7 +23,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='order',
             name='shipping_price',
-            field=django_prices.models.PriceField(currency='USD', decimal_places=4, default=0, editable=False, max_digits=12, verbose_name='shipping price'),
+            field=models.DecimalField(decimal_places=4, default=0, editable=False, max_digits=12, verbose_name='shipping price'),
         ),
         migrations.AlterField(
             model_name='orderhistoryentry',

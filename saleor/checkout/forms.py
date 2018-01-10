@@ -68,7 +68,7 @@ class ShippingCountryChoiceField(forms.ModelChoiceField):
 
     def label_from_instance(self, obj):
         """Return a friendly label for the shipping method."""
-        price_html = format_price(obj.price.gross, obj.price.currency)
+        price_html = format_price(obj.price.value, obj.price.currency)
         label = mark_safe('%s %s' % (obj.shipping_method, price_html))
         return label
 

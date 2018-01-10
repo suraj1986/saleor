@@ -98,7 +98,7 @@ def test_product_query(client, product_in_stock):
     assert product_data['name'] == product.name
     assert product_data['url'] == product.get_absolute_url()
     gross = product_data['availability']['priceRange']['minPrice']['gross']
-    assert float(gross) == float(product.price.gross)
+    assert float(gross) == float(product.price.value)
 
 
 @pytest.mark.django_db()

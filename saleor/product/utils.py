@@ -6,7 +6,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.db.models import F
 from django.utils.encoding import smart_text
 from django_prices.templatetags import prices_i18n
-from prices import Price, PriceRange
+from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from . import ProductAvailabilityStatus, VariantAvailabilityStatus
 from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
@@ -227,13 +227,13 @@ def get_product_attributes_data(product):
 
 
 def price_as_dict(price):
-    if not price:
+    if price is None:
         return None
     return {'currency': price.currency,
             'gross': price.gross,
-            'grossLocalized': prices_i18n.gross(price),
+            'grossLocalized': prices_i18n.amount(price.gross),
             'net': price.net,
-            'netLocalized': prices_i18n.net(price)}
+            'netLocalized': prices_i18n.amount(price.net)}
 
 
 def price_range_as_dict(price_range):
@@ -310,9 +310,14 @@ def get_variant_availability_status(variant):
     return VariantAvailabilityStatus.AVAILABLE
 
 
+def get_zero_price():
+    zero_amount = Money(0, currency=settings.DEFAULT_CURRENCY)
+    return TaxedMoney(net=zero_amount, gross=zero_amount)
+
+
 def get_product_costs_data(product):
-    zero_price = Price(0, 0, currency=settings.DEFAULT_CURRENCY)
-    zero_price_range = PriceRange(zero_price, zero_price)
+    zero_price = get_zero_price()
+    zero_price_range = TaxedMoneyRange(zero_price, zero_price)
     purchase_costs_range = zero_price_range
     gross_margin = (0, 0)
 
@@ -323,7 +328,7 @@ def get_product_costs_data(product):
     costs, margins = get_cost_data_from_variants(variants)
 
     if costs:
-        purchase_costs_range = PriceRange(min(costs), max(costs))
+        purchase_costs_range = TaxedMoneyRange(min(costs), max(costs))
     if margins:
         gross_margin = (margins[0], margins[-1])
     return purchase_costs_range, gross_margin
@@ -359,17 +364,17 @@ def get_variant_costs_data(variant):
 
 
 def get_cost_price(stock):
-    zero_price = Price(0, 0, currency=settings.DEFAULT_CURRENCY)
     if not stock.cost_price:
-        return zero_price
-    return stock.cost_price
+        return get_zero_price()
+    return stock.get_total()
 
 
 def get_margin_for_variant(stock):
-    if not stock.cost_price:
+    stock_price = stock.get_total()
+    if stock_price is None:
         return None
     price = stock.variant.get_price_per_item()
-    margin = price - stock.cost_price
+    margin = price - stock_price
     percent = round((margin.gross / price.gross) * 100, 0)
     return percent
 

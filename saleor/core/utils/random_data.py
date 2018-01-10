@@ -11,7 +11,7 @@ from django.template.defaultfilters import slugify
 from faker import Factory
 from faker.providers import BaseProvider
 from payments import PaymentStatus
-from prices import Price
+from prices import Money, TaxedMoney
 
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
@@ -176,7 +176,7 @@ def get_price_override(schema, combinations_num, current_price):
     prices = []
     if schema.get('different_variant_prices'):
         prices = sorted(
-            [current_price + fake.price() for _ in range(combinations_num)],
+            [current_price + fake.price().gross for _ in range(combinations_num)],
             reverse=True)
     return prices
 
@@ -229,8 +229,9 @@ def create_products_by_schema(placeholder_dir, how_many, create_images,
 
 class SaleorProvider(BaseProvider):
     def price(self):
-        return Price(fake.pydecimal(2, 2, positive=True),
-                     currency=settings.DEFAULT_CURRENCY)
+        amount = Money(fake.pydecimal(2, 2, positive=True),
+                       currency=settings.DEFAULT_CURRENCY)
+        return TaxedMoney(amount, amount)
 
     def delivery_region(self):
         return random.choice(DELIVERY_REGIONS)
@@ -270,7 +271,7 @@ def get_or_create_collection(name, **kwargs):
 def create_product(**kwargs):
     defaults = {
         'name': fake.company(),
-        'price': fake.price(),
+        'price': fake.price().gross,
         'description': '\n\n'.join(fake.paragraphs(5))}
     defaults.update(kwargs)
     return Product.objects.create(**defaults)
@@ -370,8 +371,8 @@ def create_payment(delivery_group):
         variant='default',
         transaction_id=str(fake.random_int(1, 100000)),
         currency=settings.DEFAULT_CURRENCY,
-        total=order.total.gross,
-        delivery=order.shipping_price.gross,
+        total=order.total.gross.value,
+        delivery=order.shipping_price.value,
         customer_ip_address=fake.ipv4(),
         billing_first_name=order.billing_address.first_name,
         billing_last_name=order.billing_address.last_name,
@@ -416,8 +417,8 @@ def create_order_line(delivery_group):
         quantity=quantity,
         stock=stock,
         stock_location=stock.location.name,
-        unit_price_net=product.price.net,
-        unit_price_gross=product.price.gross)
+        unit_price_net=product.price.value,
+        unit_price_gross=product.price.value)
 
 
 def create_order_lines(delivery_group, how_many=10):
@@ -445,8 +446,10 @@ def create_fake_order():
     delivery_group = create_delivery_group(order)
     lines = create_order_lines(delivery_group, random.randrange(1, 5))
 
+    shipping_price = TaxedMoney(order.shipping_price, order.shipping_price)
+
     order.total = sum(
-        [line.get_total() for line in lines], order.shipping_price)
+        [line.get_total() for line in lines], shipping_price)
     order.save()
 
     create_payment(delivery_group)
@@ -483,10 +486,10 @@ def create_product_sales(how_many=5):
 
 def create_shipping_methods():
     shipping_method = ShippingMethod.objects.create(name='UPC')
-    shipping_method.price_per_country.create(price=fake.price())
+    shipping_method.price_per_country.create(price=fake.price().gross)
     yield 'Shipping method #%d' % shipping_method.id
     shipping_method = ShippingMethod.objects.create(name='DHL')
-    shipping_method.price_per_country.create(price=fake.price())
+    shipping_method.price_per_country.create(price=fake.price().gross)
     yield 'Shipping method #%d' % shipping_method.id
 
 

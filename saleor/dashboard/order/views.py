@@ -7,9 +7,9 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.context_processors import csrf
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
-from django_prices.templatetags.prices_i18n import gross
+from django_prices.templatetags import prices_i18n
 from payments import PaymentStatus
-from prices import Price
+from prices import Money, TaxedMoney
 
 from ...core.exceptions import InsufficientStock
 from ...core.utils import get_paginator_items
@@ -53,7 +53,8 @@ def order_details(request, order_pk):
     all_payments = order.payments.exclude(status=PaymentStatus.INPUT)
     payment = order.payments.last()
     groups = list(order)
-    captured = preauthorized = Price(0, currency=order.total.currency)
+    zero_amount = Money(0, currency=order.total.currency)
+    captured = preauthorized = TaxedMoney(zero_amount, zero_amount)
     balance = captured - order.total
     if payment:
         can_capture = (
@@ -116,7 +117,7 @@ def capture_payment(request, order_pk, payment_pk):
         amount = form.cleaned_data['amount']
         msg = pgettext_lazy(
             'Dashboard message related to a payment',
-            'Captured %(amount)s') % {'amount': gross(amount)}
+            'Captured %(amount)s') % {'amount': prices_i18n.amount(amount)}
         payment.order.create_history_entry(content=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
@@ -139,7 +140,7 @@ def refund_payment(request, order_pk, payment_pk):
         amount = form.cleaned_data['amount']
         msg = pgettext_lazy(
             'Dashboard message related to a payment',
-            'Refunded %(amount)s') % {'amount': gross(amount)}
+            'Refunded %(amount)s') % {'amount': prices_i18n.amount(amount)}
         payment.order.create_history_entry(content=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)

@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db.models import F
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import pgettext_lazy
-from prices import Price
+from prices import Money, TaxedMoney
 
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
@@ -47,11 +47,12 @@ def recalculate_order(order):
     prices = [
         group.get_total() for group in order
         if group.status != GroupStatus.CANCELLED]
-    total_net = sum(p.net for p in prices)
-    total_gross = sum(p.gross for p in prices)
-    total = Price(
-        net=total_net, gross=total_gross, currency=settings.DEFAULT_CURRENCY)
-    total += order.shipping_price
+    total_net = sum(p.net.value for p in prices)
+    total_gross = sum(p.gross.value for p in prices)
+    total = TaxedMoney(
+        net=Money(total_net, currency=settings.DEFAULT_CURRENCY),
+        gross=Money(total_gross, currency=settings.DEFAULT_CURRENCY))
+    total += TaxedMoney(order.shipping_price, order.shipping_price)
     order.total = total
     order.save()
 
@@ -97,8 +98,8 @@ def add_variant_to_delivery_group(
             is_shipping_required=(
                 variant.product.product_type.is_shipping_required),
             quantity=quantity,
-            unit_price_net=price.net,
-            unit_price_gross=price.gross,
+            unit_price_net=price.net.value,  # FIXME: replace with price field
+            unit_price_gross=price.gross.value,
             stock=stock,
             stock_location=stock.location.name)
         allocate_stock(stock, quantity)

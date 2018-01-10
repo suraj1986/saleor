@@ -7,9 +7,9 @@ from django.db.models import F, Q
 from django.utils.encoding import smart_text
 from django.utils.translation import pgettext, pgettext_lazy
 from django_countries import countries
-from django_prices.models import PriceField
-from django_prices.templatetags.prices_i18n import net
-from prices import FixedDiscount, Price, percentage_discount
+from django_prices.models import MoneyField
+from django_prices.templatetags.prices_i18n import amount
+from prices import Money, FixedDiscount, TaxedMoney, percentage_discount
 
 from . import DiscountValueType, VoucherApplyToProduct, VoucherType
 
@@ -55,9 +55,9 @@ class Voucher(models.Model):
     category = models.ForeignKey(
         'product.Category', blank=True, null=True, on_delete=models.CASCADE)
     apply_to = models.CharField(max_length=20, blank=True, null=True)
-    limit = PriceField(
-        max_digits=12, decimal_places=2, null=True, blank=True,
-        currency=settings.DEFAULT_CURRENCY)
+    limit = MoneyField(
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
+        null=True, blank=True)
 
     objects = VoucherQueryset.as_manager()
 
@@ -109,31 +109,31 @@ class Voucher(models.Model):
             return choices[self.apply_to]
         return None
 
-    def get_fixed_discount_for(self, amount):
+    def get_fixed_discount_for(self, price):
         if self.discount_value_type == DiscountValueType.FIXED:
-            discount_price = Price(
-                net=self.discount_value, currency=settings.DEFAULT_CURRENCY)
+            discount_amount = Money(
+                self.discount_value, currency=settings.DEFAULT_CURRENCY)
             discount = FixedDiscount(
-                amount=discount_price, name=smart_text(self))
+                amount=discount_amount, name=smart_text(self))
         elif self.discount_value_type == DiscountValueType.PERCENTAGE:
             discount = percentage_discount(
                 value=self.discount_value, name=smart_text(self))
-            fixed_discount_value = amount - discount.apply(amount)
+            fixed_discount_value = price - discount.apply(price)
             discount = FixedDiscount(
-                amount=fixed_discount_value, name=smart_text(self))
+                amount=fixed_discount_value.gross, name=smart_text(self))
         else:
             raise NotImplementedError('Unknown discount value type')
-        if discount.amount > amount:
-            return FixedDiscount(amount, name=smart_text(self))
+        if discount.amount > price.gross:
+            return FixedDiscount(price, name=smart_text(self))
         return discount
 
     def validate_limit(self, value):
-        limit = self.limit or value
-        if value < limit:
+        limit = self.limit or value.gross
+        if value.gross < limit:
             msg = pgettext(
                 'Voucher not applicable',
                 'This offer is only valid for orders over %(amount)s.')
-            raise NotApplicable(msg % {'amount': net(limit)}, limit=limit)
+            raise NotApplicable(msg % {'amount': amount(limit)}, limit=limit)
 
 
 class Sale(models.Model):
@@ -162,9 +162,9 @@ class Sale(models.Model):
 
     def get_discount(self):
         if self.type == DiscountValueType.FIXED:
-            discount_price = Price(
-                net=self.value, currency=settings.DEFAULT_CURRENCY)
-            return FixedDiscount(amount=discount_price, name=self.name)
+            return FixedDiscount(
+                amount=Money(self.value, currency=settings.DEFAULT_CURRENCY),
+                name=self.name)
         if self.type == DiscountValueType.PERCENTAGE:
             return percentage_discount(value=self.value, name=self.name)
         raise NotImplementedError('Unknown discount type')

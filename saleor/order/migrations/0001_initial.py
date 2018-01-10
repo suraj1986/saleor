@@ -4,9 +4,8 @@ from __future__ import unicode_literals
 from django.db import models, migrations
 import django.db.models.deletion
 from django.conf import settings
-import django.utils.timezone
-import django_prices.models
 import django.core.validators
+import django.utils.timezone
 
 
 class Migration(migrations.Migration):
@@ -24,7 +23,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('status', models.CharField(default='new', max_length=32, verbose_name='delivery status', choices=[('new', 'Processing'), ('cancelled', 'Cancelled'), ('shipped', 'Shipped')])),
                 ('shipping_required', models.BooleanField(default=True, verbose_name='shipping required')),
-                ('shipping_price', django_prices.models.PriceField(decimal_places=4, default=0, editable=False, currency=b'USD', max_digits=12, verbose_name='shipping price')),
+                ('shipping_price', models.DecimalField(decimal_places=4, default=0, editable=False, max_digits=12, verbose_name='shipping price')),
             ],
         ),
         migrations.CreateModel(
