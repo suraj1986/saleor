@@ -69,7 +69,8 @@ var config = {
       'bootstrap',
       'jquery',
       'jquery.cookie',
-      'react'
+      'react',
+      'react-dom'
     ]
   },
   output: output,

@@ -244,4 +244,5 @@ def resolve_attributes(category_pk):
         queryset = queryset.filter(
             Q(product_types__in=product_types) |
             Q(product_variant_types__in=product_types))
+    print(queryset.distinct())
     return queryset.distinct()
