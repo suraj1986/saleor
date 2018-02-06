@@ -1,22 +1,25 @@
 import graphene
 from graphene import relay
+from graphene_django import DjangoConnectionField
 from graphene_django.debug import DjangoDebug
 
-from .category.types import resolve_categories
 from .product.types import (
-    CategoryType, ProductAttributeType, resolve_attributes, resolve_category)
+    CategoryType, ProductAttributeType, resolve_attributes, resolve_category,
+    resolve_categories)
+from .product.mutations import CategoryCreate, CategoryDelete, CategoryUpdate
+
 
 
 class Query(graphene.ObjectType):
     attributes = graphene.List(
         ProductAttributeType,
-        category_pk=graphene.Argument(graphene.Int, required=True))
+        category_pk=graphene.Argument(graphene.Int))
     category = graphene.Field(
         CategoryType,
         pk=graphene.Argument(graphene.Int, required=True))
-    categories = graphene.List(
+    categories = DjangoConnectionField(
         CategoryType,
-        parent=graphene.Argument(graphene.Int, required=False))
+        parent=graphene.Argument(graphene.Int))
     node = relay.Node.Field()
     root = graphene.Field(lambda: Query)
     debug = graphene.Field(DjangoDebug, name='_debug')
@@ -27,7 +30,7 @@ class Query(graphene.ObjectType):
 
     def resolve_categories(self, info, **args):
         parent = args.get('parent')
-        return resolve_categories(parent, info)
+        return resolve_categories(parent)
 
     def resolve_attributes(self, info, **args):
         category_pk = args.get('category_pk')
@@ -39,4 +42,10 @@ class Query(graphene.ObjectType):
         return Query()
 
 
-schema = graphene.Schema(Query)
+class Mutations(graphene.ObjectType):
+    category_create = CategoryCreate.Field()
+    category_delete = CategoryDelete.Field()
+    category_update = CategoryUpdate.Field()
+
+
+schema = graphene.Schema(Query, Mutations)

@@ -30,9 +30,7 @@ def test_category_query(client, product_in_stock):
                 pk
                 name
                 productsCount
-                ancestors { name }
                 children { name }
-                siblings { name }
             }
         }
     """ % {'category_pk': category.pk}
@@ -45,11 +43,7 @@ def test_category_query(client, product_in_stock):
     assert category_data['name'] == category.name
     assert category_data['productsCount'] == category.products.count()
     assert_corresponding_fields(
-        category_data['ancestors'], category.get_ancestors(), ['name'])
-    assert_corresponding_fields(
         category_data['children'], category.get_children(), ['name'])
-    assert_corresponding_fields(
-        category_data['siblings'], category.get_siblings(), ['name'])
 
 
 @pytest.mark.django_db()

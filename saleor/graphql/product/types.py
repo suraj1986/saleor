@@ -91,22 +91,14 @@ class CategoryType(DjangoObjectType):
                 than or equal to the given value"""))
     products_count = graphene.Int()
     url = graphene.String()
-    ancestors = graphene.List(lambda: CategoryType)
-    children = graphene.List(lambda: CategoryType)
-    siblings = graphene.List(lambda: CategoryType)
+    children = DjangoConnectionField(lambda: CategoryType)
 
     class Meta:
         model = Category
         interfaces = (relay.Node, DjangoPkInterface)
 
-    def resolve_ancestors(self, info):
-        return get_ancestors_from_cache(self, info.context)
-
     def resolve_children(self, info):
         return self.children.all()
-
-    def resolve_siblings(self, info):
-        return self.get_siblings()
 
     def resolve_products_count(self, info):
         return self.products.count()
@@ -231,6 +223,10 @@ def resolve_category(pk, info):
     return None
 
 
+def resolve_categories(parent_pk=None):
+    return Category.objects.filter(parent=parent_pk)
+
+
 def resolve_attributes(category_pk):
     queryset = ProductAttribute.objects.prefetch_related('values')
     if category_pk:
@@ -244,5 +240,4 @@ def resolve_attributes(category_pk):
         queryset = queryset.filter(
             Q(product_types__in=product_types) |
             Q(product_variant_types__in=product_types))
-    print(queryset.distinct())
     return queryset.distinct()
