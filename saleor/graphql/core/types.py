@@ -2,6 +2,11 @@ import graphene
 from django_prices.templatetags import prices_i18n
 
 
+class ErrorType(graphene.ObjectType):
+    field = graphene.String()
+    message = graphene.String()
+
+
 class PriceType(graphene.ObjectType):
     currency = graphene.String()
     gross = graphene.Float()

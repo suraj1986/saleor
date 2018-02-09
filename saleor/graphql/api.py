@@ -9,7 +9,6 @@ from .product.types import (
 from .product.mutations import CategoryCreate, CategoryDelete, CategoryUpdate
 
 
-
 class Query(graphene.ObjectType):
     attributes = graphene.List(
         ProductAttributeType,
