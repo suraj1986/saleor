@@ -30,7 +30,13 @@ def test_category_query(client, product_in_stock):
                 pk
                 name
                 productsCount
-                children { name }
+                children {
+                    edges {
+                        node {
+                             name
+                        }
+                    }
+                }
             }
         }
     """ % {'category_pk': category.pk}
@@ -42,8 +48,7 @@ def test_category_query(client, product_in_stock):
     assert int(category_data['pk']) == category.pk
     assert category_data['name'] == category.name
     assert category_data['productsCount'] == category.products.count()
-    assert_corresponding_fields(
-        category_data['children'], category.get_children(), ['name'])
+    assert category_data['children']['edges'] == []
 
 
 @pytest.mark.django_db()
