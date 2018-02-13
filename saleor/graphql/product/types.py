@@ -11,7 +11,7 @@ from ...product.models import (
     ProductVariant)
 from ...product.templatetags.product_images import product_first_image
 from ...product.utils import get_availability, products_visible_to_user
-from ..core.types import PriceRangeType, PriceType
+from ..core.types import TaxedMoneyType, TaxedMoneyRangeType
 from ..utils import CategoryAncestorsCache, DjangoPkInterface
 from .scalars import AttributesFilterScalar
 
@@ -29,11 +29,11 @@ def get_ancestors_from_cache(category, context):
 class ProductAvailabilityType(graphene.ObjectType):
     available = graphene.Boolean()
     on_sale = graphene.Boolean()
-    discount = graphene.Field(lambda: PriceType)
-    discount_local_currency = graphene.Field(lambda: PriceType)
-    price_range = graphene.Field(lambda: PriceRangeType)
-    price_range_undiscounted = graphene.Field(lambda: PriceRangeType)
-    price_range_local_currency = graphene.Field(lambda: PriceRangeType)
+    discount = graphene.Field(lambda: TaxedMoneyType)
+    discount_local_currency = graphene.Field(lambda: TaxedMoneyType)
+    price_range = graphene.Field(lambda: TaxedMoneyRangeType)
+    price_range_undiscounted = graphene.Field(lambda: TaxedMoneyRangeType)
+    price_range_local_currency = graphene.Field(lambda: TaxedMoneyRangeType)
 
 
 class ProductType(DjangoObjectType):
@@ -45,7 +45,7 @@ class ProductType(DjangoObjectType):
     images = graphene.List(lambda: ProductImageType)
     variants = graphene.List(lambda: ProductVariantType)
     availability = graphene.Field(lambda: ProductAvailabilityType)
-    price = graphene.Field(lambda: PriceType)
+    price = graphene.Field(lambda: TaxedMoneyType)
 
     class Meta:
         model = Product
@@ -81,8 +81,8 @@ class CategoryType(DjangoObjectType):
                 the products by"""),
         order_by=graphene.Argument(
             graphene.String,
-            description="""A name of field to sort the products by. The negative
-                sign in front of name implies descending order."""),
+            description="""A name of field to sort the products by. The
+                negative sign in front of name implies descending order."""),
         price_lte=graphene.Argument(
             graphene.Float, description="""Get the products with price lower
                 than or equal to the given value"""),
@@ -126,11 +126,12 @@ class CategoryType(DjangoObjectType):
 
         if attributes_filter:
             attributes = ProductAttribute.objects.prefetch_related('values')
-            attributes_map = {attribute.slug: attribute.pk
-                              for attribute in attributes}
-            values_map = {attr.slug: {value.slug: value.pk
-                                      for value in attr.values.all()}
-                          for attr in attributes}
+            attributes_map = {
+                attribute.slug: attribute.pk for attribute in attributes}
+            values_map = {
+                attr.slug: {
+                    value.slug: value.pk for value in attr.values.all()}
+                for attr in attributes}
             queries = {}
             # Convert attribute:value pairs into a dictionary where
             # attributes are keys and values are grouped in lists
@@ -167,7 +168,7 @@ class CategoryType(DjangoObjectType):
                 obj for obj in queryset
                 if operator(
                     get_availability(obj, context.discounts)
-                    .price_range.min_price.gross, value)
+                    .price_range.start.gross, value)
             ]
 
         if price_lte:
@@ -180,7 +181,7 @@ class CategoryType(DjangoObjectType):
 
 class ProductVariantType(DjangoObjectType):
     stock_quantity = graphene.Int()
-    price_override = graphene.Field(lambda: PriceType)
+    price_override = graphene.Field(lambda: TaxedMoneyType)
 
     class Meta:
         model = ProductVariant

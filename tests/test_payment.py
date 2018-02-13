@@ -35,5 +35,5 @@ def test_get_purchased_items(order_with_lines, settings, voucher):
 
     assert discounted.name == order_with_lines.discount_name
     assert discounted.sku == 'DISCOUNT'
-    assert discounted.price == -1 * order_with_lines.discount_amount.value
+    assert discounted.price == -1 * order_with_lines.discount_amount.amount
     assert discounted.quantity == 1

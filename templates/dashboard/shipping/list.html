@@ -60,10 +60,10 @@
                     <td>
                       {% if not method.price_range %}
                         -
-                      {% elif method.price_range.min_price == method.price_range.max_price %}
-                        {{ method.price_range.min_price.gross|amount:'html' }}
+                      {% elif method.price_range.start == method.price_range.stop %}
+                        {{ method.price_range.start.gross|amount:'html' }}
                       {% else %}
-                        {{ method.price_range.min_price.gross|amount:'html' }}&ndash;{{ method.price_range.max_price.gross|amount:'html' }}
+                        {{ method.price_range.start.gross|amount:'html' }}&ndash;{{ method.price_range.stop.gross|amount:'html' }}
                       {% endif %}
                     </td>
                     <td>

@@ -11,7 +11,7 @@ from django.utils.encoding import smart_str
 from django.utils.timezone import now
 from django_prices.models import MoneyField
 from jsonfield import JSONField
-from prices import Money, TaxedMoney
+from prices import sum as sum_prices
 
 from . import CartStatus, logger
 
@@ -41,7 +41,7 @@ class ProductGroup(list):
         if not subtotals:
             raise AttributeError(
                 'Calling get_total() on an empty product group')
-        return sum(subtotals[1:], subtotals[0])
+        return sum_prices(subtotals)
 
 
 class CartQueryset(models.QuerySet):
@@ -159,9 +159,7 @@ class Cart(models.Model):
         subtotals = [line.get_total(discounts) for line in self.lines.all()]
         if not subtotals:
             raise AttributeError('Calling get_total() on an empty cart')
-        zero_amount = Money(0, currency=settings.DEFAULT_CURRENCY)
-        zero = TaxedMoney(zero_amount, zero_amount)
-        return sum(subtotals, zero)
+        return sum_prices(subtotals)
 
     def count(self):
         """Return the total quantity in cart."""

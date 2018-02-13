@@ -124,13 +124,13 @@
           <h2 class="product__info__price">
             <span>{% price_range availability.price_range %}</span>
             {% if availability.discount %}
-              <small class="product__info__price__undiscounted">{{ availability.price_range_undiscounted.min_price.gross|amount:'html' }}</small>
+              <small class="product__info__price__undiscounted">{{ availability.price_range_undiscounted.start.gross|amount:'html' }}</small>
             {% endif %}
             {% if availability.price_range_local_currency %}
               <br>
               <small class="text-info">
                 &asymp;
-                {{ availability.price_range_local_currency.min_price.gross|amount:'html' }}
+                {{ availability.price_range_local_currency.start.gross|amount:'html' }}
               </small>
             {% endif %}
           </h2>

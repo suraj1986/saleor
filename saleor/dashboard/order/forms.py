@@ -69,9 +69,9 @@ class ManagePaymentForm(forms.Form):
                 'Payment gateway error: %s') % message)
 
     def try_payment_action(self, action):
-        amount = self.cleaned_data['amount']
+        amount = self.cleaned_data['amount'].amount
         try:
-            action(amount.value)
+            action(amount)
         except (PaymentError, ValueError) as e:
             self.payment_error(str(e))
             return False

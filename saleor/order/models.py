@@ -12,10 +12,11 @@ from django_fsm import FSMField, transition
 from django_prices.models import MoneyField
 from payments import PaymentStatus, PurchasedItem
 from payments.models import BasePayment
-from prices import Money, FixedDiscount, total_gross
+from prices import Money, TaxedMoney
 
 from ..account.models import Address
 from ..core.utils import build_absolute_uri
+from ..discount.discounts import FixedDiscount
 from ..discount.models import Voucher
 from ..product.models import Product
 from .transitions import (
@@ -94,8 +95,7 @@ class Order(models.Model):
         total_paid = sum(
             [payment.total for payment in
              self.payments.filter(status=PaymentStatus.CONFIRMED)], Decimal())
-        total = self.get_total()
-        return total_paid >= total.gross.value
+        return total_paid >= self.total.gross.amount
 
     def get_user_current_email(self):
         return self.user.email if self.user else self.user_email
@@ -333,7 +333,7 @@ class Payment(BasePayment):
                 name=self.order.discount_name,
                 sku='DISCOUNT',
                 quantity=1,
-                price=-self.order.discount_amount.value,
+                price=-self.order.discount_amount.amount,
                 currency=self.currency))
         return lines
 

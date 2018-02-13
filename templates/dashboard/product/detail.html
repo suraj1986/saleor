@@ -42,20 +42,16 @@
               <p class="text-padding">{% trans "Sale price" context "Product field" %}</p>
             </div>
             <div class="col s7 m6">
-              {% with sale_price.min_price as min_price %}
-                {% with sale_price.max_price as max_price %}
-                  <p class="text-padding right-align">{{ min_price.gross|amount }} - {{ max_price.gross|amount }}</p>
-                {% endwith %}
+              {% with sale_price as price_range %}
+                <p class="text-padding right-align">{{ price_range.start.gross|amount }} - {{ price_range.stop.gross|amount }}</p>
               {% endwith %}
             </div>
             <div class="col s5 m6">
                 <p class="text-padding">{% trans "Purchase cost" context "Product field" %}</p>
             </div>
             <div class="col s7 m6">
-              {% with purchase_cost.min_price as min_price %}
-                {% with purchase_cost.max_price as max_price %}
-                  <p class="text-padding right-align">{{ min_price.gross|amount }} - {{ max_price.gross|amount }}</p>
-                {% endwith %}
+              {% with purchase_cost as price_range %}
+                <p class="text-padding right-align">{{ price_range.start.gross|amount }} - {{ price_range.stop.gross|amount }}</p>
               {% endwith %}
             </div>
             <div class="col s5 m6">

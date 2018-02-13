@@ -371,8 +371,8 @@ def create_payment(delivery_group):
         variant='default',
         transaction_id=str(fake.random_int(1, 100000)),
         currency=settings.DEFAULT_CURRENCY,
-        total=order.total.gross.value,
-        delivery=order.shipping_price.value,
+        total=order.total.gross.amount,
+        delivery=order.shipping_price.amount,
         customer_ip_address=fake.ipv4(),
         billing_first_name=order.billing_address.first_name,
         billing_last_name=order.billing_address.last_name,
@@ -417,8 +417,8 @@ def create_order_line(delivery_group):
         quantity=quantity,
         stock=stock,
         stock_location=stock.location.name,
-        unit_price_net=product.price.value,
-        unit_price_gross=product.price.value)
+        unit_price_net=product.price.amount,
+        unit_price_gross=product.price.amount)
 
 
 def create_order_lines(delivery_group, how_many=10):

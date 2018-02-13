@@ -74,7 +74,7 @@ def test_product_query(client, product_in_stock):
                             availability {
                                 available,
                                 priceRange {
-                                    minPrice {
+                                    start {
                                         gross
                                         net
                                         currency
@@ -97,8 +97,8 @@ def test_product_query(client, product_in_stock):
     assert int(product_data['pk']) == product.pk
     assert product_data['name'] == product.name
     assert product_data['url'] == product.get_absolute_url()
-    gross = product_data['availability']['priceRange']['minPrice']['gross']
-    assert float(gross) == float(product.price.value)
+    gross = product_data['availability']['priceRange']['start']['gross']
+    assert float(gross) == float(product.price.amount)
 
 
 @pytest.mark.django_db()

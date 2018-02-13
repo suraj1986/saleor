@@ -91,7 +91,7 @@ def to_local_currency(price, currency):
     if not settings.OPENEXCHANGERATES_API_KEY:
         return None
     if isinstance(price, MoneyRange):
-        from_currency = price.min_price.currency
+        from_currency = price.start.currency
     else:
         from_currency = price.currency
     if currency != from_currency:
@@ -112,7 +112,7 @@ def get_user_shipping_country(request):
 
 def serialize_amount(obj):
     if isinstance(obj, Money):
-        return str(obj.value)
+        return str(obj.amount)
     return JSONEncoder.default(obj)
 
 

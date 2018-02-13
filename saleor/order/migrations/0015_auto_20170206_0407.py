@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
+import django_prices.models
 
 
 class Migration(migrations.Migration):
@@ -61,7 +62,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='order',
             name='discount_amount',
-            field=models.DecimalField(blank=True, decimal_places=2, max_digits=12, null=True, verbose_name='discount amount'),
+            field=django_prices.models.MoneyField(blank=True, currency='USD', decimal_places=2, max_digits=12, null=True, verbose_name='discount amount'),
         ),
         migrations.AlterField(
             model_name='order',
@@ -76,12 +77,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='order',
             name='total_net',
-            field=models.DecimalField(blank=True, decimal_places=2, max_digits=12, null=True, verbose_name='total net'),
+            field=django_prices.models.MoneyField(blank=True, currency='USD', decimal_places=2, max_digits=12, null=True, verbose_name='total net'),
         ),
         migrations.AlterField(
             model_name='order',
             name='total_tax',
-            field=models.DecimalField(blank=True, decimal_places=2, max_digits=12, null=True, verbose_name='total tax'),
+            field=django_prices.models.MoneyField(blank=True, currency='USD', decimal_places=2, max_digits=12, null=True, verbose_name='total tax'),
         ),
         migrations.AlterField(
             model_name='order',

@@ -579,7 +579,7 @@ def test_cart_summary_page(client, product_in_stock, request_cart):
     assert content['quantity'] == request_cart.quantity
     cart_total = request_cart.get_total()
     assert content['total'] == currencyfmt(
-        cart_total.gross.value, cart_total.currency)
+        cart_total.gross.amount, cart_total.currency)
     assert len(content['lines']) == 1
     cart_line = content['lines'][0]
     assert cart_line['variant'] == variant.name
@@ -730,7 +730,7 @@ def test_get_cart_data(request_cart_with_item, shipping_method):
         request_cart_with_item, shipment_option, 'USD', None)
     assert cart_data['cart_total'] == TaxedMoney(
         Money(10, 'USD'), Money(10, 'USD'))
-    assert cart_data['total_with_shipping'].min_price == TaxedMoney(
+    assert cart_data['total_with_shipping'].start == TaxedMoney(
         Money(20, 'USD'), Money(20, 'USD'))
 
 
@@ -740,4 +740,4 @@ def test_get_cart_data_no_shipping(request_cart_with_item):
         request_cart_with_item, shipment_option, 'USD', None)
     cart_total = cart_data['cart_total']
     assert cart_total == TaxedMoney(Money(10, 'USD'), Money(10, 'USD'))
-    assert cart_data['total_with_shipping'].min_price == cart_total
+    assert cart_data['total_with_shipping'].start == cart_total

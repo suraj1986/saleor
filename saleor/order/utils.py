@@ -47,8 +47,8 @@ def recalculate_order(order):
     prices = [
         group.get_total() for group in order
         if group.status != GroupStatus.CANCELLED]
-    total_net = sum(p.net.value for p in prices)
-    total_gross = sum(p.gross.value for p in prices)
+    total_net = sum(p.net.amount for p in prices)
+    total_gross = sum(p.gross.amount for p in prices)
     total = TaxedMoney(
         net=Money(total_net, currency=settings.DEFAULT_CURRENCY),
         gross=Money(total_gross, currency=settings.DEFAULT_CURRENCY))
@@ -98,8 +98,8 @@ def add_variant_to_delivery_group(
             is_shipping_required=(
                 variant.product.product_type.is_shipping_required),
             quantity=quantity,
-            unit_price_net=price.net.value,  # FIXME: replace with price field
-            unit_price_gross=price.gross.value,
+            unit_price_net=price.net.amount,  # FIXME: replace with price field
+            unit_price_gross=price.gross.amount,
             stock=stock,
             stock_location=stock.location.name)
         allocate_stock(stock, quantity)

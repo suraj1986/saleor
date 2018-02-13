@@ -9,9 +9,10 @@ from django.utils.translation import pgettext, pgettext_lazy
 from django_countries import countries
 from django_prices.models import MoneyField
 from django_prices.templatetags.prices_i18n import amount
-from prices import Money, FixedDiscount, TaxedMoney, percentage_discount
+from prices import Money, TaxedMoney
 
 from . import DiscountValueType, VoucherApplyToProduct, VoucherType
+from .discounts import FixedDiscount, percentage_discount
 
 
 class NotApplicable(ValueError):
@@ -117,14 +118,12 @@ class Voucher(models.Model):
                 amount=discount_amount, name=smart_text(self))
         elif self.discount_value_type == DiscountValueType.PERCENTAGE:
             discount = percentage_discount(
-                value=self.discount_value, name=smart_text(self))
-            fixed_discount_value = price - discount.apply(price)
-            discount = FixedDiscount(
-                amount=fixed_discount_value.gross, name=smart_text(self))
+                base=price.gross, percentage=self.discount_value,
+                name=smart_text(self))
         else:
             raise NotImplementedError('Unknown discount value type')
         if discount.amount > price.gross:
-            return FixedDiscount(price, name=smart_text(self))
+            return FixedDiscount(price.gross, name=smart_text(self))
         return discount
 
     def validate_limit(self, value):
@@ -160,11 +159,12 @@ class Sale(models.Model):
     def __str__(self):
         return self.name
 
-    def get_discount(self):
+    def get_discount(self, product):
         if self.type == DiscountValueType.FIXED:
             return FixedDiscount(
                 amount=Money(self.value, currency=settings.DEFAULT_CURRENCY),
                 name=self.name)
         if self.type == DiscountValueType.PERCENTAGE:
-            return percentage_discount(value=self.value, name=self.name)
+            return percentage_discount(
+                base=product.price, percentage=self.value, name=self.name)
         raise NotImplementedError('Unknown discount type')

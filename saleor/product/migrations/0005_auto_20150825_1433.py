@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
+import django_prices.models
 
 
 class Migration(migrations.Migration):
@@ -14,12 +15,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='fixedproductdiscount',
             name='discount',
-            field=models.DecimalField(verbose_name='discount value', max_digits=12, decimal_places=2),
+            field=django_prices.models.MoneyField(verbose_name='discount value', max_digits=12, decimal_places=2, currency='USD'),
         ),
         migrations.AlterField(
             model_name='product',
             name='price',
-            field=models.DecimalField(verbose_name='price', max_digits=12, decimal_places=2),
+            field=django_prices.models.MoneyField(verbose_name='price', max_digits=12, decimal_places=2, currency='USD'),
         ),
         migrations.AlterField(
             model_name='product',
@@ -29,7 +30,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='productvariant',
             name='price_override',
-            field=models.DecimalField(verbose_name='price override', decimal_places=2, blank=True, max_digits=12, null=True),
+            field=django_prices.models.MoneyField(verbose_name='price override', decimal_places=2, blank=True, currency='USD', max_digits=12, null=True),
         ),
         migrations.AlterField(
             model_name='productvariant',
@@ -39,6 +40,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='stock',
             name='cost_price',
-            field=models.DecimalField(verbose_name='cost price', decimal_places=2, blank=True, max_digits=12, null=True),
+            field=django_prices.models.MoneyField(verbose_name='cost price', decimal_places=2, blank=True, currency='USD', max_digits=12, null=True),
         ),
     ]

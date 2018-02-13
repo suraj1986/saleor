@@ -10,10 +10,10 @@ from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
-from django_prices.models import Money, MoneyField, TaxedMoney
+from django_prices.models import MoneyField
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
-from prices import TaxedMoneyRange
+from prices import Money, TaxedMoney, TaxedMoneyRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
@@ -318,7 +318,7 @@ class Stock(models.Model):
 
     def get_total(self):
         if self.cost_price:
-            return Price(self.cost_price, self.cost_price)
+            return TaxedMoney(self.cost_price, self.cost_price)
 
 
 class ProductAttribute(models.Model):

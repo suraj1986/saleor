@@ -7,13 +7,14 @@ from django.db import transaction
 from django.forms.models import model_to_dict
 from django.utils.encoding import smart_text
 from django.utils.translation import get_language
-from prices import Money, FixedDiscount, TaxedMoney
+from prices import Money, TaxedMoney
 
 from ..account.models import Address
 from ..account.utils import store_user_address
 from ..cart.models import Cart
 from ..cart.utils import get_or_empty_db_cart
 from ..core import analytics
+from ..discount.discounts import FixedDiscount
 from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import (
     increase_voucher_usage, get_voucher_discount_for_checkout)
@@ -108,8 +109,9 @@ class Checkout:
             if self.shipping_method and partition.is_shipping_required():
                 shipping_cost = self.shipping_method.get_total()
             else:
-                zero_amount = Money(0, currency=settings.DEFAULT_CURRENCY)
-                shipping_cost = TaxedMoney(zero_amount, zero_amount)
+                shipping_cost = TaxedMoney(
+                    net=Money(0, currency=settings.DEFAULT_CURRENCY),
+                    gross=Money(0, currency=settings.DEFAULT_CURRENCY))
             total_with_shipping = partition.get_total(
                 discounts=self.cart.discounts) + shipping_cost
 
@@ -223,9 +225,9 @@ class Checkout:
 
     @discount.setter
     def discount(self, discount):
-        amount = discount.amount
-        self.storage['discount_value'] = smart_text(amount.value)
-        self.storage['discount_currency'] = amount.currency
+        # FIXME: discount.amount.amount
+        self.storage['discount_value'] = smart_text(discount.amount.amount)
+        self.storage['discount_currency'] = discount.amount.currency
         self.storage['discount_name'] = discount.name
         self.modified = True
 
@@ -303,15 +305,15 @@ class Checkout:
         else:
             shipping_address = None
         billing_address = self._save_order_billing_address()
-        self._add_to_user_address_book(
-            self.billing_address, is_billing=True)
+        self._add_to_user_address_book(self.billing_address, is_billing=True)
 
-        zero_amount = Money(0, currency=settings.DEFAULT_CURRENCY)
-        zero = TaxedMoney(zero_amount, zero_amount)
+        if self.shipping_method:
+            shipping_price = self.shipping_method.get_total()
+        else:
+            shipping_price = TaxedMoney(
+                net=Money(0, currency=settings.DEFAULT_CURRENCY),
+                gross=Money(0, currency=settings.DEFAULT_CURRENCY))
 
-        shipping_price = (
-            self.shipping_method.get_total() if self.shipping_method
-            else zero)
         order_data = {
             'language_code': get_language(),
             'billing_address': billing_address,
@@ -329,7 +331,7 @@ class Checkout:
         if voucher is not None:
             discount = self.discount
             order_data['voucher'] = voucher
-            order_data['discount_amount'] = discount.amount.value
+            order_data['discount_amount'] = discount.amount.amount
             order_data['discount_name'] = discount.name
 
         order = Order.objects.create(**order_data)
@@ -383,8 +385,9 @@ class Checkout:
 
     def get_subtotal(self):
         """Calculate order total without shipping."""
-        zero_amount = Money(0, currency=settings.DEFAULT_CURRENCY)
-        zero = TaxedMoney(zero_amount, zero_amount)
+        zero = TaxedMoney(
+            net=Money(0, currency=settings.DEFAULT_CURRENCY),
+            gross=Money(0, currency=settings.DEFAULT_CURRENCY))
 
         cost_iterator = (
             total - shipping_cost
@@ -394,8 +397,9 @@ class Checkout:
 
     def get_total(self):
         """Calculate order total with shipping."""
-        zero_amount = Money(0, currency=settings.DEFAULT_CURRENCY)
-        zero = TaxedMoney(zero_amount, zero_amount)
+        zero = TaxedMoney(
+            net=Money(0, currency=settings.DEFAULT_CURRENCY),
+            gross=Money(0, currency=settings.DEFAULT_CURRENCY))
 
         cost_iterator = (
             total

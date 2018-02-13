@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 from django.db import migrations, models
 import django.db.models.deletion
+import django_prices.models
 
 
 class Migration(migrations.Migration):
@@ -31,7 +32,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='shippingmethodcountry',
             name='price',
-            field=models.DecimalField(decimal_places=2, max_digits=12),
+            field=django_prices.models.MoneyField(currency='USD', decimal_places=2, max_digits=12),
         ),
         migrations.AlterField(
             model_name='shippingmethodcountry',

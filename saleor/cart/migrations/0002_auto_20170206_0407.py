@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 from django.db import migrations, models
 import django.db.models.deletion
+import django_prices.models
 import jsonfield.fields
 
 
@@ -40,7 +41,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='cart',
             name='total',
-            field=models.DecimalField(decimal_places=2, default=0, max_digits=12, verbose_name='total'),
+            field=django_prices.models.MoneyField(currency='USD', decimal_places=2, default=0, max_digits=12, verbose_name='total'),
         ),
         migrations.AlterField(
             model_name='cart',

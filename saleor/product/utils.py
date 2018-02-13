@@ -60,8 +60,8 @@ def get_availability(product, discounts=None, local_currency=None):
     # In default currency
     price_range = product.get_price_range(discounts=discounts)
     undiscounted = product.get_price_range()
-    if undiscounted.min_price > price_range.min_price:
-        discount = undiscounted.min_price - price_range.min_price
+    if undiscounted.start > price_range.start:
+        discount = undiscounted.start - price_range.start
     else:
         discount = None
 
@@ -72,9 +72,9 @@ def get_availability(product, discounts=None, local_currency=None):
         undiscounted_local = to_local_currency(
             undiscounted, local_currency)
         if (undiscounted_local and
-                undiscounted_local.min_price > price_range_local.min_price):
+                undiscounted_local.start > price_range_local.start):
             discount_local_currency = (
-                undiscounted_local.min_price - price_range_local.min_price)
+                undiscounted_local.start - price_range_local.start)
         else:
             discount_local_currency = None
     else:
@@ -84,7 +84,7 @@ def get_availability(product, discounts=None, local_currency=None):
     is_available = product.is_in_stock() and product.is_available()
     is_on_sale = (
         product.is_available() and discount is not None and
-        undiscounted.min_price != price_range.min_price)
+        undiscounted.start != price_range.start)
 
     return ProductAvailability(
         available=is_available,
@@ -229,18 +229,19 @@ def get_product_attributes_data(product):
 def price_as_dict(price):
     if price is None:
         return None
-    return {'currency': price.currency,
-            'gross': price.gross,
-            'grossLocalized': prices_i18n.amount(price.gross),
-            'net': price.net,
-            'netLocalized': prices_i18n.amount(price.net)}
+    return {
+        'currency': price.currency,
+        'gross': price.gross,
+        'grossLocalized': prices_i18n.amount(price.gross),
+        'net': price.net,
+        'netLocalized': prices_i18n.amount(price.net)}
 
 
 def price_range_as_dict(price_range):
     if not price_range:
         return None
-    return {'maxPrice': price_as_dict(price_range.max_price),
-            'minPrice': price_as_dict(price_range.min_price)}
+    return {'maxPrice': price_as_dict(price_range.start),
+            'minPrice': price_as_dict(price_range.stop)}
 
 
 def get_variant_url_from_product(product, attributes):
@@ -310,18 +311,14 @@ def get_variant_availability_status(variant):
     return VariantAvailabilityStatus.AVAILABLE
 
 
-def get_zero_price():
-    zero_amount = Money(0, currency=settings.DEFAULT_CURRENCY)
-    return TaxedMoney(net=zero_amount, gross=zero_amount)
-
-
 def get_product_costs_data(product):
-    zero_price = get_zero_price()
-    zero_price_range = TaxedMoneyRange(zero_price, zero_price)
-    purchase_costs_range = zero_price_range
-    gross_margin = (0, 0)
-
     if not product.variants.exists():
+        zero = TaxedMoney(
+            net=Money(0, currency=settings.DEFAULT_CURRENCY),
+            gross=Money(0, currency=settings.DEFAULT_CURRENCY))
+        purchase_costs_range = TaxedMoneyRange(zero, zero)
+        gross_margin = (0, 0)
+
         return purchase_costs_range, gross_margin
 
     variants = product.variants.all()
@@ -365,7 +362,10 @@ def get_variant_costs_data(variant):
 
 def get_cost_price(stock):
     if not stock.cost_price:
-        return get_zero_price()
+        zero = TaxedMoney(
+            net=Money(0, currency=settings.DEFAULT_CURRENCY),
+            gross=Money(0, currency=settings.DEFAULT_CURRENCY))
+        return zero
     return stock.get_total()
 
 
